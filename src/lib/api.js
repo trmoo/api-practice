@@ -272,7 +272,7 @@ export function 위키(낱말) {
  *
  * ⚠ 이 API 는 브라우저에서 직접 못 부른다.
  *   ① CORS 헤더(Access-Control-Allow-Origin)를 안 보낸다
- *   ② 파일이 1.1~6.0MB 다
+ *   ② 파일이 1.3~8.2MB 다
  *   그래서 화면은 담아 둔 자료로 돌린다. 그 사실을 감추지 않고 화면에 밝힌다.
  */
 export function 에듀넷(clssId) {

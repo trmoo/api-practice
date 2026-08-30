@@ -2,7 +2,7 @@
  *
  * ⚠ 이 API 는 브라우저에서 직접 못 부른다 (2026-08-30 확인)
  *   ① Access-Control-Allow-Origin 헤더가 없다 → 브라우저가 막는다
- *   ② 파일이 1.3~8.3MB 다 → 한 반이 동시에 받으면 학교망이 버티지 못한다
+ *   ② 파일이 1.3~8.2MB 다 → 한 반이 동시에 받으면 학교망이 버티지 못한다
  *   그래서 여기서 한 번 받아 「제목·키워드」만 남기고 잘라 담는다.
  *
  * ⚠ 저작권 — 콘텐츠 본문(<expln>, 1만 자 HTML)은 담지 않는다.
@@ -59,8 +59,11 @@ for (const 과목 of 과목들) {
     이름: 과목.이름, create_date: 만든날, total: 전체,
     보인건수: 줄들.length, rows: 줄들,
   };
+  // ⚠ 글자 수(글.length)로 크기를 재면 안 된다 — 한글 UTF-8 은 한 글자가 3바이트라
+  //   실제보다 30~40% 작게 나온다. Buffer.byteLength 로 진짜 바이트를 잰다.
+  const 바이트 = Buffer.byteLength(글, 'utf8');
   console.log(`  ✓ ${과목.이름.padEnd(12)} clss_id=${과목.id.padEnd(6)} `
-    + `전체 ${String(전체).padStart(4)}건 · ${(글.length / 1048576).toFixed(1)}MB → ${줄들.length}건만 담음`);
+    + `전체 ${String(전체).padStart(4)}건 · ${(바이트 / 1048576).toFixed(1)}MB → ${줄들.length}건만 담음`);
 }
 
 writeFileSync(new URL('./edunet.json', import.meta.url),
