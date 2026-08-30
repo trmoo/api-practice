@@ -40,7 +40,7 @@ jobs:
       - name: 의존성 설치
         run: npm ci
 
-      - name: 시험 (295가지)
+      - name: 시험 (314가지)
         run: npm test
 
       # ⚠ 이 단계를 빼지 말 것 — npm test 는 화면을 그리는 탭 파일을 부르지 않으므로
@@ -59,7 +59,7 @@ jobs:
           size=$(wc -c < dist/index.html)
           echo "크기: ${size} 바이트"
           if [ "$size" -lt 100000 ]; then
-            echo "❌ 너무 작다. 자료가 빠졌을 수 있다 (100KB 넘어야 정상, 보통 약 155KB)"
+            echo "❌ 너무 작다. 자료가 빠졌을 수 있다 (100KB 넘어야 정상, 보통 약 181KB)"
             exit 1
           fi
 
@@ -71,7 +71,7 @@ jobs:
           count=$(grep -o 티쳐무 dist/index.html | wc -l)
           echo "저작권 표시: ${count}회"
           if [ "$count" -lt 10 ]; then
-            echo "❌ 저작권 표시가 지워졌다 (10회 이상이어야 정상, 지금 기준 14회)"
+            echo "❌ 저작권 표시가 지워졌다 (10회 이상이어야 정상, 지금 기준 16회)"
             exit 1
           fi
 
