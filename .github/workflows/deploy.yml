@@ -1,0 +1,111 @@
+# API 실습실 — 깃허브 페이지 배포
+#
+# 푸시할 때마다 시험 → 문법 전수 검사 → 빌드 → 빌드 결과 점검을 돌린다.
+# 하나라도 깨지면 배포도 멈춘다. dist/ 는 커밋하지 않는다.
+#
+# ⚠ Settings → Pages → Source 가 「GitHub Actions」 여야 한다.
+#   「Deploy from a branch」 를 고르면 빌드 안 한 저장소 원본이 서비스되어
+#   개발용 index.html 껍데기가 열리고 흰 화면이 된다.
+#
+# © 2026 티쳐무 · 모든 권리 보유
+# 학교 수업 목적으로만 이용해 주세요. 무단 배포와 상업적 이용을 금합니다.
+
+name: Deploy to GitHub Pages
+
+on:
+  push:
+    branches: [main]
+  workflow_dispatch:
+
+permissions:
+  contents: read
+  pages: write
+  id-token: write
+
+concurrency:
+  group: pages
+  cancel-in-progress: false
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version: 20
+          cache: npm
+
+      - name: 의존성 설치
+        run: npm ci
+
+      - name: 시험 (295가지)
+        run: npm test
+
+      # ⚠ 이 단계를 빼지 말 것 — npm test 는 화면을 그리는 탭 파일을 부르지 않으므로
+      #   탭 파일의 문법 오류는 시험을 통과하고 빌드에서야 터진다.
+      - name: 소스 전수 문법·저작권 검사
+        run: npm run check:syntax
+
+      - name: 빌드
+        run: npm run build
+
+      - name: 빌드 결과 점검
+        run: |
+          set -e
+          test -f dist/index.html || { echo "❌ dist/index.html 이 없다"; exit 1; }
+
+          size=$(wc -c < dist/index.html)
+          echo "크기: ${size} 바이트"
+          if [ "$size" -lt 100000 ]; then
+            echo "❌ 너무 작다. 자료가 빠졌을 수 있다 (100KB 넘어야 정상, 보통 약 155KB)"
+            exit 1
+          fi
+
+          # ⚠ 변수 이름은 반드시 ASCII 로 — bash 는 한글 변수 이름을 못 쓴다.
+          #   「크기=…」 로 적었더니 command not found 로 배포가 깨졌다(2026-08-30).
+          # ⚠ 저작권 표시 — 소스마다 /*! 머리 주석이 남으므로 여러 번 나온다.
+          #   esbuild.legalComments 를 'none' 으로 두면 배너까지 지워지니 주의.
+          #   소스 파일을 늘리면 이 수도 늘어난다. 그때 아래 기준도 함께 고칠 것.
+          count=$(grep -o 티쳐무 dist/index.html | wc -l)
+          echo "저작권 표시: ${count}회"
+          if [ "$count" -lt 10 ]; then
+            echo "❌ 저작권 표시가 지워졌다 (10회 이상이어야 정상, 지금 기준 14회)"
+            exit 1
+          fi
+
+          # 꼭 있어야 할 세 곳
+          grep -q '성취기준 \[12정02-03\]' dist/index.html \
+            || { echo "❌ HTML 주석의 저작권·성취기준 표시가 없다"; exit 1; }
+          grep -q '/\*! API 실습실 (api-practice)' dist/index.html \
+            || { echo "❌ 스크립트 배너가 없다"; exit 1; }
+          grep -q '학교 수업 목적으로만 이용해 주세요' dist/index.html \
+            || { echo "❌ 화면 푸터 문구가 없다"; exit 1; }
+
+          # 남의 자료 출처를 밝히는 문구가 살아 있는지
+          grep -q 'CC BY-SA' dist/index.html \
+            || { echo "❌ 위키백과 출처 표시가 없다"; exit 1; }
+
+          echo "✅ 빌드 결과 점검 통과"
+
+      - uses: actions/configure-pages@v5
+        # ⚠ 저장소마다 Actions 기본 권한이 달라 자동 켜기가 거부될 수 있다.
+        #   거부되어도 빌드가 멈추지 않게 해 둔다. 그때는 손으로 한 번 켜면 된다.
+        continue-on-error: true
+        with:
+          enablement: true
+
+      - uses: actions/upload-pages-artifact@v5
+        with:
+          path: dist
+
+  deploy:
+    needs: build
+    runs-on: ubuntu-latest
+    environment:
+      name: github-pages
+      url: ${{ steps.deployment.outputs.page_url }}
+    steps:
+      - id: deployment
+        uses: actions/deploy-pages@v5

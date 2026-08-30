@@ -1,0 +1,22 @@
+{
+  "name": "api-practice",
+  "version": "0.1.0",
+  "description": "API 실습실 — 주소를 부르면 JSON이 오는 과정을 직접 조작해 보고, 나이스 급식 API로 우리 학교 데이터를 수집해 보는 수업용 웹앱.",
+  "license": "UNLICENSED",
+  "author": "티쳐무 (trmoo)",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite",
+    "start": "vite",
+    "build": "vite build",
+    "preview": "vite preview",
+    "test": "node test/run.mjs",
+    "check:syntax": "node tools/check_syntax.mjs",
+    "data": "node tools/fetch_samples.mjs"
+  },
+  "devDependencies": {
+    "vite": "^5.4.11",
+    "vite-plugin-singlefile": "^2.0.3"
+  }
+}

@@ -1,0 +1,12 @@
+node_modules/
+dist/
+
+# 남의 원본 자료는 저장소에 올리지 않는다
+source/
+*.pdf
+*.hwp
+
+# 학습지(docs/)는 우리가 직접 만든 것이라 넣는다.
+# 그 밖의 워드 문서는 제외.
+*.docx
+!docs/*.docx
