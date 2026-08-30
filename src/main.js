@@ -14,6 +14,7 @@ import './style.css';
 import { h, add, clear, beginScreen, footer, note, button } from './lib/ui.js';
 import * as api from './lib/api.js';
 import * as 저장 from './lib/store.js';
+import * as 소개 from './tabs/intro.js';
 import * as 기초 from './tabs/basics.js';
 import * as 한값 from './tabs/onevalue.js';
 import * as 급식 from './tabs/meal.js';
@@ -22,7 +23,16 @@ import * as 급식 from './tabs/meal.js';
 
 const 탭들 = [
   {
-    키: 'basic', 이름: '① 요청과 응답',
+    // ⓪ 개념 소개 — 채점하지 않는다. 무엇을 배우는지 모르고 시작하지 않게 하려는 자리.
+    키: 'intro', 이름: '① API 란?',
+    화면들: [
+      { 키: 'what', 이름: 'API 란 무엇인가', 그리기: 소개.what },
+      { 키: 'shape', 이름: '같은 자료, 두 모양', 그리기: 소개.shape },
+      { 키: 'around', 이름: '우리 둘레의 API', 그리기: 소개.around },
+    ],
+  },
+  {
+    키: 'basic', 이름: '② 요청과 응답',
     화면들: [
       { 키: 'first', 이름: '첫 요청', 그리기: 기초.first },
       { 키: 'onevalue', 이름: '값 하나만 바꾸기', 그리기: 한값.onevalue },
@@ -32,7 +42,7 @@ const 탭들 = [
     ],
   },
   {
-    키: 'meal', 이름: '② 급식 API 실습',
+    키: 'meal', 이름: '③ 급식 API 실습',
     화면들: [
       { 키: 'school', 이름: '학교 찾기', 그리기: 급식.school },
       { 키: 'meal', 이름: '급식 조회', 그리기: 급식.meal },

@@ -291,7 +291,8 @@ table.tbl td.num { text-align: right; font-variant-numeric: tabular-nums; }
 .pickcard:hover { border-color: var(--brand); background: var(--brand-soft); }
 .pickcard.on { border-color: var(--brand); background: var(--brand-soft); }
 .pickcard b { display: block; font-size: 17px; }
-.pickcard small { color: var(--dim); }
+/* ⚠ small 은 기본이 인라인이라, 한 카드에 둘 이상 넣으면 「날씨받는다」처럼 붙어 버린다. */
+.pickcard small { display: block; color: var(--dim); margin-top: 2px; }
 
 .meal { display: grid; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(260px, 1fr)); }
 .mealcard { border: 1px solid var(--line); border-radius: 10px; padding: 13px 15px; background: #fff; }
