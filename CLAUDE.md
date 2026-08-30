@@ -258,6 +258,38 @@ PyMuPDF 로 PNG 를 뽑아 눈으로 본다(이 PC 에 `pdftoppm` 이 없다).
 
 저장소: https://github.com/trmoo/api-practice (2026-08-30 첫 푸시)
 
+### ⚠⚠ Pages 가 「Deploy from a branch」 로 켜져 있다 — 고쳐야 한다
+
+**2026-08-30 현재 https://trmoo.github.io/api-practice/ 는 흰 화면이 나온다.**
+`saints_dict` 에서 겪은 것과 같은 함정에 다시 걸렸다.
+
+증상과 확인 방법 —
+
+```
+curl -s https://trmoo.github.io/api-practice/ | wc -c
+```
+
+- **1,311바이트** 가 나오면 잘못된 것이다. 저장소 루트의 개발용 `index.html`(껍데기)이
+  그대로 서비스되는 중이며, 그 안의 `/src/main.js` 는 404 라 **흰 화면**이 된다.
+- **186,033바이트**(약 181KB) 가 나와야 정상이다.
+
+까닭 — Pages Source 가 「Deploy from a branch」 라서 깃허브가 붙이는
+`pages build and deployment`(Jekyll) 잡이 푸시마다 함께 돌고, **나중에 끝난 쪽이 이긴다.**
+우리는 `dist/` 를 커밋하지 않으므로 브랜치 배포는 원리상 동작할 수 없다.
+
+⚠ **Actions 탭만 보면 모른다.** 우리 워크플로도 성공, Jekyll 도 성공으로 찍힌다.
+실제 크기를 재야 안다.
+
+고치는 법 — **Settings → Pages → Source 를 「GitHub Actions」 로 바꾼 뒤 Re-run.**
+API 로는 `PUT /repos/trmoo/api-practice/pages` 에 `{"build_type":"workflow"}`
+(`legacy` 면 브랜치, `workflow` 면 Actions).
+
+⚠ `configure-pages@v5` 의 `enablement: true` 는 **꺼진 Pages 를 켜 줄 뿐,
+이미 켜진 브랜치 배포를 Actions 배포로 바꾸지 못한다.**
+
+⚠ REST API 의 `/pages` 엔드포인트는 인증이 필요해 익명으로는 404 가 나온다.
+켜졌는지 여부를 이것으로 판단하지 말 것 — `curl -sI` 로 200 인지, `wc -c` 로 크기를 볼 것.
+
 ⚠ 깃 전역 `user.name` 이 비어 있어(전역 이메일은 `enssam21@gmail.com`) 폴더에 따로 넣었다 —
 `user.name trmoo` · `user.email trmoo@users.noreply.github.com`.
 
