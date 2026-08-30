@@ -258,10 +258,16 @@ PyMuPDF 로 PNG 를 뽑아 눈으로 본다(이 PC 에 `pdftoppm` 이 없다).
 
 저장소: https://github.com/trmoo/api-practice (2026-08-30 첫 푸시)
 
-### ⚠⚠ Pages 가 「Deploy from a branch」 로 켜져 있다 — 고쳐야 한다
+### ⚠⚠ Pages 「Deploy from a branch」 함정 — 실제로 걸렸다 (2026-08-30, 해결)
 
-**2026-08-30 현재 https://trmoo.github.io/api-practice/ 는 흰 화면이 나온다.**
-`saints_dict` 에서 겪은 것과 같은 함정에 다시 걸렸다.
+첫 푸시 때 Pages Source 가 「Deploy from a branch」 로 되어 있어 **흰 화면**이 나왔다.
+`saints_dict` 에서 겪은 것과 같은 함정에 다시 걸린 것이다.
+사용자가 Source 를 「GitHub Actions」 로 바꾼 뒤 다시 푸시해 해결했다.
+
+**★ 이때 알게 된 것 — 설정을 바꾸는 것만으로는 화면이 안 바뀐다.**
+바꾼 뒤 **새로 한 번 배포해야** 한다. 설정 변경 전의 마지막 배포는 Jekyll 것이라
+그대로 남아 있기 때문이다. 실제로 우리 잡은 10:32:47 에, Jekyll 은 10:32:53 에 끝나
+**6초 차이로 Jekyll 이 이겼다.**
 
 증상과 확인 방법 —
 
