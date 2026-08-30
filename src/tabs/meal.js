@@ -18,7 +18,7 @@ import {
   h, add, clear, card, pageHead, note, button, mono, details,
 } from '../lib/ui.js';
 import {
-  요청상자, 고르기문제, 코드빈칸문제, 코드보기, 연습알림,
+  요청상자, 고르기문제, 코드읽기, 코드보기, 연습알림,
 } from '../lib/req.js';
 import { 나무그리기, 경로표시줄, 예쁘게, 값꺼내기, 경로같나, 경로글 } from '../lib/json.js';
 import * as api from '../lib/api.js';
@@ -147,7 +147,7 @@ export function school(host) {
           + '누구나 마음껏 부르면 서버가 견디지 못하기 때문입니다.'),
         h('p', {}, '인증키(회원가입 뒤 받는 값)를 붙이면 더 많이 받을 수 있습니다. '
           + '인증키는 「누가 얼마나 부르는지」를 서버가 알기 위한 이름표입니다.')),
-      코드빈칸문제(빈칸찾기('blank-encode'))),
+      코드읽기(빈칸찾기('blank-encode'))),
   ]);
 
   입력.addEventListener('keydown', (e) => { if (e.key === 'Enter') 틀.보내기(); });

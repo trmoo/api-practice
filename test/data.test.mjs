@@ -16,8 +16,9 @@
 import * as api from '../src/lib/api.js';
 import { 값꺼내기, 경로글 } from '../src/lib/json.js';
 import {
-  주소퀴즈, 코드빈칸, 경로퀴즈, 전처리퀴즈, 활동목록, 알레르기표,
+  주소퀴즈, 코드빈칸, 경로퀴즈, 전처리퀴즈, 에듀넷퀴즈, 활동목록, 알레르기표,
 } from '../src/data/quiz.js';
+import { 주소틀, 과목들, 학습자료 } from '../src/data/edunet.js';
 import { 학교목록, 급식샘플, 날씨샘플, 강아지샘플, 위키샘플, 받은날 } from '../src/data/samples.js';
 
 export const 이름 = '자료와 정답 대조';
@@ -65,12 +66,15 @@ export function run(T) {
 
   T.group('활동 열쇠 — 겹치면 점수가 덮어써진다');
   T.ok('활동 열쇠가 겹치지 않는다', new Set(활동목록).size, 활동목록.length);
+  // ⚠ 코드빈칸은 채점하지 않으므로 활동 수에 넣지 않는다.
   T.ok('활동 수가 문제 수와 맞는다', 활동목록.length,
-    주소퀴즈.length + 코드빈칸.length + 경로퀴즈.length + 전처리퀴즈.length);
+    에듀넷퀴즈.length + 주소퀴즈.length + 경로퀴즈.length + 전처리퀴즈.length);
+  T.falsy('코드빈칸은 채점 활동에 없다',
+    코드빈칸.some((q) => 활동목록.includes(q.키)));
   T.ok('모든 열쇠가 빈 글자가 아니다', 활동목록.every((k) => k && k.length > 2), true);
 
   T.group('고르기 문제 — 정답이 보기 안에 있는가');
-  [...주소퀴즈, ...전처리퀴즈].forEach((문제) => {
+  [...에듀넷퀴즈, ...주소퀴즈, ...전처리퀴즈].forEach((문제) => {
     T.ok(`${문제.키}: 정답이 보기 안에 있다`, 문제.보기.includes(문제.답), true);
     T.ok(`${문제.키}: 보기가 겹치지 않는다`, new Set(문제.보기).size, 문제.보기.length);
     T.ok(`${문제.키}: 보기가 세 개 이상`, 문제.보기.length >= 3, true);
@@ -111,10 +115,7 @@ export function run(T) {
   });
   T.ok('식단 경로의 값이 문자열이다',
     typeof 값꺼내기(급식응답, 경로퀴즈.find((q) => q.키 === 'path-dish').답), 'string');
-  T.ok('건수 경로의 값이 숫자다',
-    typeof 값꺼내기(급식응답, 경로퀴즈.find((q) => q.키 === 'path-count').답), 'number');
-  T.ok('처리 코드는 INFO-000',
-    값꺼내기(급식응답, 경로퀴즈.find((q) => q.키 === 'path-result').답), 'INFO-000');
+  T.ok('경로 퀴즈는 세 문항이다 (2026-08-30 다섯에서 줄임)', 경로퀴즈.length, 3);
   T.ok('두 번째 날 경로가 첫째 날과 다른 날짜를 가리킨다',
     값꺼내기(급식응답, ['mealServiceDietInfo', 1, 'row', 1, 'MLSV_YMD'])
       !== 값꺼내기(급식응답, ['mealServiceDietInfo', 1, 'row', 0, 'MLSV_YMD']), true);
@@ -147,4 +148,28 @@ export function run(T) {
   });
   const 모르는것 = [...모든번호].filter((n) => !(n in 알레르기표));
   T.ok(`실제 자료의 번호 ${모든번호.size}가지가 모두 표에 있다`, 모르는것, []);
+
+  T.group('에듀넷 학습자료 — 파라미터 첫 화면에 쓰는 자료');
+  T.ok('과목이 일곱 가지 (매뉴얼 v1.3 요청 변수 표)', 과목들.length, 7);
+  T.has('주소틀에 clss_id 자리가 있다', 주소틀, '{clss_id}');
+  T.has('주소틀이 에듀넷 저장소를 가리킨다', 주소틀, 'gov-ncloudstorage.com');
+  T.ok('clss_id 가 겹치지 않는다',
+    new Set(과목들.map((g) => g.clss_id)).size, 7);
+  T.ok('매뉴얼에 적힌 값 그대로다',
+    과목들.map((g) => g.clss_id),
+    ['362', '363', '75541', '75542', '75543', '75544', '89162']);
+  T.ok('362 는 사회', 과목들.find((g) => g.clss_id === '362').이름, '사회');
+  T.ok('363 은 과학', 과목들.find((g) => g.clss_id === '363').이름, '과학');
+  T.ok('75543 은 체육', 과목들.find((g) => g.clss_id === '75543').이름, '체육');
+  T.ok('과목마다 담긴 자료가 있다',
+    과목들.every((g) => (학습자료[g.clss_id]?.rows?.length ?? 0) > 0), true);
+  T.ok('담긴 자료에 제목이 다 있다',
+    Object.values(학습자료).every((v) => v.rows.every((r) => r.ttl && r.ttl.length > 1)), true);
+  // ⚠ 저작권 — 콘텐츠 본문(expln)은 담지 않는다. 담기면 남의 글을 재배포하는 셈이 된다.
+  T.falsy('본문(expln)은 담겨 있지 않다',
+    Object.values(학습자료).some((v) => v.rows.some((r) => 'expln' in r)));
+  T.ok('전체 건수가 담긴 건수보다 많거나 같다',
+    Object.values(학습자료).every((v) => v.total >= v.rows.length), true);
+  T.ok('과목 목록의 전체건수와 자료의 total 이 같다',
+    과목들.every((g) => g.전체건수 === 학습자료[g.clss_id].total), true);
 }

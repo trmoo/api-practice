@@ -21,8 +21,9 @@
 import {
   받은날, 무키최대건수, 학교목록, 급식샘플, 날씨샘플, 강아지샘플, 위키샘플,
 } from '../data/samples.js';
+import { 주소틀 as 에듀넷주소틀, 과목들, 학습자료 } from '../data/edunet.js';
 
-export { 받은날, 무키최대건수, 학교목록 };
+export { 받은날, 무키최대건수, 학교목록, 에듀넷주소틀, 과목들 };
 
 /* ─────────────────────────────── 모드 ────────────────────────────────── */
 
@@ -224,6 +225,33 @@ export function 위키(낱말) {
   };
 }
 
+/* ─────────────────────────── 에듀넷 학습자료 ─────────────────────────── */
+
+/**
+ * 에듀넷 주제별 학습자료 — 요청 변수가 clss_id 하나뿐이라 파라미터 첫 수업에 알맞다.
+ *
+ * ⚠ 이 API 는 브라우저에서 직접 못 부른다.
+ *   ① CORS 헤더(Access-Control-Allow-Origin)를 안 보낸다
+ *   ② 파일이 1.1~6.0MB 다
+ *   그래서 화면은 담아 둔 자료로 돌린다. 그 사실을 감추지 않고 화면에 밝힌다.
+ */
+export function 에듀넷(clssId) {
+  const 과목 = 과목들.find((g) => g.clss_id === String(clssId));
+  return {
+    설명: `에듀넷 ${과목 ? 과목.이름 : clssId} 학습자료`,
+    주소: 에듀넷주소틀.replace('{clss_id}', String(clssId)),
+    연습전용: true,   // 실제 호출을 시도해도 브라우저가 막는다
+    연습() {
+      return 학습자료[String(clssId)] || null;
+    },
+  };
+}
+
+/** clss_id 로 과목 하나를 찾는다 */
+export function 과목찾기(clssId) {
+  return 과목들.find((g) => g.clss_id === String(clssId)) || null;
+}
+
 /* ──────────────────────────────── 부르기 ─────────────────────────────── */
 
 /**
@@ -237,7 +265,9 @@ export function 위키(낱말) {
 export async function 부르기(spec, 옵션 = {}) {
   const 시작 = Date.now();
 
-  if (모드 === '연습') {
+  // 연습전용 API 는 실제 모드에서도 담아 둔 자료로 돌린다.
+  // (브라우저가 막으므로 진짜로는 못 부른다. 화면이 그 까닭을 밝힌다.)
+  if (모드 === '연습' || spec.연습전용) {
     // 연습 모드에도 잠깐 뜸을 들인다 — 「보냄 → 기다림 → 받음」의 흐름을 보이게 하려고.
     await new Promise((r) => setTimeout(r, 옵션.뜸 ?? 260));
     const 본문 = spec.연습();
@@ -251,6 +281,7 @@ export async function 부르기(spec, 옵션 = {}) {
     return {
       ok: true, 상태: 200, 본문, 걸린ms: Date.now() - 시작,
       모드: '연습', 주소: spec.주소, 오류: null,
+      담아둔자료: true,
     };
   }
 

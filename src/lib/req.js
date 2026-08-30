@@ -304,6 +304,41 @@ export function 코드빈칸문제(문제) {
   }
 }
 
+/**
+ * 코드 빈칸 자료를 「채워진 코드 + 설명」으로 보여 준다. 채점하지 않는다.
+ * ⚠ 학생이 문법을 외우는 데 시간을 쓰지 않게 하려는 것(2026-08-30 사용자 요청).
+ *   빈칸을 정답으로 채워 두고, 그 자리가 무슨 일을 하는지 아래에 적는다.
+ */
+export function 코드읽기(문제) {
+  const 상자 = h('div', {});
+  상자.append(h('p', {}, h('b', {}, 문제.제목),
+    h('span', { class: 'dim' }, `  (${문제.언어 === 'py' ? '파이썬' : '자바스크립트'})`)));
+
+  const 표들 = 문제.빈칸.map((b) => b.표);
+  const 쪼개기 = new RegExp(`(${표들.join('|')})`, 'g');
+  const pre = h('pre', { class: 'code' });
+  문제.코드.split('\n').forEach((줄글, i) => {
+    if (i) pre.append(document.createTextNode('\n'));
+    줄글.split(쪼개기).forEach((조각) => {
+      if (표들.includes(조각)) {
+        const 빈칸 = 문제.빈칸.find((b) => b.표 === 조각);
+        pre.append(h('span', { class: 'blank done' }, 빈칸.답));
+      } else if (조각.trimStart().startsWith('//') || 조각.trimStart().startsWith('#')) {
+        pre.append(h('span', { class: 'cmt' }, 조각));
+      } else {
+        pre.append(document.createTextNode(조각));
+      }
+    });
+  });
+  상자.append(pre);
+
+  문제.빈칸.forEach((빈칸) => {
+    상자.append(note('info',
+      h('p', {}, h('b', {}, 빈칸.답), ' — ', 빈칸.풀이)));
+  });
+  return 상자;
+}
+
 /** 「파이썬으로는 이렇게 씁니다」 상자 */
 export function 코드보기(제목, 코드글) {
   const pre = h('pre', { class: 'code' });

@@ -15,6 +15,7 @@ import { h, add, clear, beginScreen, footer, note, button } from './lib/ui.js';
 import * as api from './lib/api.js';
 import * as 저장 from './lib/store.js';
 import * as 기초 from './tabs/basics.js';
+import * as 한값 from './tabs/onevalue.js';
 import * as 급식 from './tabs/meal.js';
 
 /* ─────────────────────────── 탭과 화면 차례 ──────────────────────────── */
@@ -24,6 +25,7 @@ const 탭들 = [
     키: 'basic', 이름: '① 요청과 응답',
     화면들: [
       { 키: 'first', 이름: '첫 요청', 그리기: 기초.first },
+      { 키: 'onevalue', 이름: '값 하나만 바꾸기', 그리기: 한값.onevalue },
       { 키: 'url', 이름: '주소 해부기', 그리기: 기초.url },
       { 키: 'param', 이름: '파라미터 실험실', 그리기: 기초.param },
       { 키: 'json', 이름: 'JSON 탐험기', 그리기: 기초.json },
