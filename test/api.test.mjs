@@ -72,6 +72,33 @@ export function run(T) {
   const 없는학교 = api.학교찾기('없는학교이름zzz').연습();
   T.ok('없는 이름도 INFO-200', api.나이스풀이(없는학교).코드, 'INFO-200');
 
+  T.group('★ JSON 만 오는 것이 아니다 — Type 파라미터로 형식이 갈린다');
+  T.has('기본은 Type=json', api.학교찾기('와우').주소, 'Type=json');
+  T.has('xml 을 주면 Type=xml', api.학교찾기('와우', 'xml').주소, 'Type=xml');
+  T.ok('형식을 밝혀 준다', api.학교찾기('와우', 'xml').형식, 'xml');
+  T.ok('모르는 값은 json 으로 친다', api.학교찾기('와우', '엉뚱').형식, 'json');
+  T.ok('형식만 다르고 나머지 주소는 같다',
+    api.학교찾기('와우', 'xml').주소.replace('Type=xml', 'Type=json'),
+    api.학교찾기('와우', 'json').주소);
+  T.ok('형식이 달라도 연습 자료는 같다',
+    JSON.stringify(api.학교찾기('와우', 'xml').연습()),
+    JSON.stringify(api.학교찾기('와우', 'json').연습()));
+
+  T.group('나이스 XML 옮겨 적기 — 같은 자료, 다른 모양');
+  const 찾은것 = api.학교찾기('와우').연습();
+  const xml = api.나이스XML(찾은것, 'schoolInfo');
+  T.has('XML 선언으로 시작한다', xml, '<?xml version="1.0" encoding="UTF-8"?>');
+  T.has('바깥 태그가 이름과 같다', xml, '<schoolInfo>');
+  T.has('닫는 태그도 있다', xml, '</schoolInfo>');
+  T.has('head 가 있다', xml, '<list_total_count>');
+  T.has('row 가 있다', xml, '<row>');
+  T.has('학교 이름이 태그 안에 들어간다', xml, '<SCHUL_NM>와우고등학교</SCHUL_NM>');
+  T.ok('여는 태그와 닫는 태그 수가 같다',
+    (xml.match(/<row>/g) || []).length, (xml.match(/<\/row>/g) || []).length);
+  T.ok('JSON 이 아니다', (() => { try { JSON.parse(xml); return false; } catch { return true; } })(), true);
+  const 빈xml = api.나이스XML(api.학교찾기('없는학교zzz').연습(), 'schoolInfo');
+  T.has('자료가 없으면 XML 로도 INFO-200', 빈xml, '<CODE>INFO-200</CODE>');
+
   T.group('급식 — 주소 만들기');
   const 하루 = api.급식('J10', '7531428', '20260824');
   T.has('날짜 하나면 MLSV_YMD', 하루.주소, 'MLSV_YMD=20260824');

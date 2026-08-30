@@ -85,12 +85,19 @@ export function 시도이름(코드) {
   }[코드] || 코드;
 }
 
-/** 학교 이름으로 찾기 */
-export function 학교찾기(이름) {
+/**
+ * 학교 이름으로 찾기.
+ * ⚠ 형식을 'xml' 로 주면 같은 자료가 XML 로 온다.
+ *   나이스는 Type 을 아예 빼면 **기본값이 XML** 이다(2026-08-30 확인).
+ *   그래서 학생이 주소에서 Type=json 을 지우면 JSON.parse 가 실패한다.
+ */
+export function 학교찾기(이름, 형식 = 'json') {
   const 말 = (이름 || '').trim();
+  const 타입 = 형식 === 'xml' ? 'xml' : 'json';
   return {
-    설명: `학교 이름에 「${말}」이 든 학교 찾기`,
-    주소: `${나이스}/schoolInfo?Type=json&pSize=5&SCHUL_NM=${encodeURIComponent(말)}`,
+    설명: `학교 이름에 「${말}」이 든 학교 찾기 (${타입})`,
+    형식: 타입,
+    주소: `${나이스}/schoolInfo?Type=${타입}&pSize=5&SCHUL_NM=${encodeURIComponent(말)}`,
     연습() {
       if (!말) return 나이스모양('schoolInfo', []);
       const 걸린것 = 학교목록.filter((s) => s[0].includes(말));
@@ -106,6 +113,39 @@ export function 학교찾기(이름) {
       return 나이스모양('schoolInfo', 줄들, 걸린것.length);
     },
   };
+}
+
+/**
+ * 같은 자료를 XML 로 적으면 어떻게 생겼는지 만들어 준다.
+ * 연습 모드에서도 「형식을 바꾸면 모양이 달라진다」를 보여 주려는 것.
+ * ⚠ 실제 나이스가 주는 XML 과 들여쓰기까지 같지는 않다. 구조만 같게 맞췄다.
+ */
+export function 나이스XML(응답, 이름) {
+  const 줄들 = 나이스줄(응답, 이름);
+  const 전체 = 나이스전체건수(응답, 이름);
+  if (!줄들.length) {
+    return ['<?xml version="1.0" encoding="UTF-8"?>', '<RESULT>',
+      '  <CODE>INFO-200</CODE>',
+      '  <MESSAGE>해당하는 데이터가 없습니다.</MESSAGE>', '</RESULT>'].join('\n');
+  }
+  const 칸 = (n) => ' '.repeat(n);
+  const 조각 = ['<?xml version="1.0" encoding="UTF-8"?>', `<${이름}>`,
+    `${칸(2)}<head>`,
+    `${칸(4)}<list_total_count>${전체}</list_total_count>`,
+    `${칸(4)}<RESULT>`,
+    `${칸(6)}<CODE>INFO-000</CODE>`,
+    `${칸(6)}<MESSAGE>정상 처리되었습니다.</MESSAGE>`,
+    `${칸(4)}</RESULT>`,
+    `${칸(2)}</head>`];
+  줄들.forEach((줄) => {
+    조각.push(`${칸(2)}<row>`);
+    Object.entries(줄).forEach(([열쇠, 값]) => {
+      조각.push(`${칸(4)}<${열쇠}>${String(값)}</${열쇠}>`);
+    });
+    조각.push(`${칸(2)}</row>`);
+  });
+  조각.push(`</${이름}>`);
+  return 조각.join('\n');
 }
 
 /** 급식 식단 — 날짜 하나 또는 기간 */
@@ -295,16 +335,21 @@ export async function 부르기(spec, 옵션 = {}) {
       signal: AbortSignal.timeout(옵션.제한 ?? 15000),
     });
     const 글 = await res.text();
+    const 형식 = (res.headers.get('content-type') || '').includes('xml') ? 'xml' : 'json';
     let 본문 = null;
     let 오류 = null;
     try {
       본문 = JSON.parse(글);
     } catch {
-      오류 = 'JSON 이 아닌 응답이 왔습니다. 주소를 다시 확인해 보세요.';
+      // ⚠ XML 로 온 것이지 잘못된 것이 아닐 수 있다. 나이스는 Type 을 빼면 XML 을 준다.
+      오류 = 형식 === 'xml'
+        ? 'JSON 이 아니라 XML 로 왔습니다. 주소의 Type 값을 확인해 보세요.'
+        : 'JSON 으로 읽을 수 없는 응답이 왔습니다. 주소를 다시 확인해 보세요.';
+      if (옵션.날글) 오류 = null;   // 원문만 보고 싶을 때는 실패로 치지 않는다
     }
     if (!res.ok && !오류) 오류 = `서버가 ${res.status} 을(를) 돌려주었습니다.`;
     return {
-      ok: res.ok && !오류, 상태: res.status, 본문,
+      ok: res.ok && !오류, 상태: res.status, 본문, 날글: 글, 응답형식: 형식,
       걸린ms: Date.now() - 시작, 모드: '실제', 주소: spec.주소, 오류,
     };
   } catch (e) {

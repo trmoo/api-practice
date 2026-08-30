@@ -1,10 +1,12 @@
 /*! ==========================================================================
  * basics.js — 탭① 「요청과 응답」 네 화면
  *
- *   1 first  첫 요청      — 주소를 부르면 JSON이 온다
- *   2 url    주소 해부기  — 주소가 곧 요청이다
- *   3 param  파라미터 실험실 — 값을 바꾸면 답이 바뀐다
- *   4 json   JSON 탐험기  — 깊이 들어간 값을 꺼내는 길
+ *   1 first  첫 요청      — 주소를 부르면 자료가 온다
+ *   3 url    주소 해부기  — 주소가 곧 요청이다 (+ Type=json ↔ xml 형식 실험)
+ *   4 param  파라미터 실험실 — 값을 바꾸면 답이 바뀐다
+ *   5 json   JSON 탐험기  — 깊이 들어간 값을 꺼내는 길
+ *
+ *   2번 화면(값 하나만 바꾸기)은 tabs/onevalue.js 에 따로 있다.
  *
  * © 2026 티쳐무 · 모든 권리 보유
  * 학교 수업 목적으로만 이용해 주세요. 무단 배포와 상업적 이용을 금합니다.
@@ -29,7 +31,7 @@ const 빈칸찾기 = (키) => 코드빈칸.find((q) => q.키 === 키);
 
 export function first(host) {
   add(host, [
-    pageHead('첫 요청 — 주소를 부르면 JSON이 온다',
+    pageHead('첫 요청 — 주소를 부르면 자료가 온다',
       '단추를 한 번 누르는 것으로 시작합니다. 무슨 일이 일어나는지 먼저 눈으로 보세요.'),
     연습알림(api.받은날),
   ]);
@@ -79,8 +81,9 @@ export function first(host) {
       note('info',
         h('p', {}, h('b', {}, 'API 는 「프로그램이 부를 수 있는 주소」다.')),
         h('p', {}, '사람이 보는 웹페이지는 꾸밈(글꼴·색·그림)이 잔뜩 붙어 있다. '
-          + 'API 는 꾸밈 없이 자료만 JSON 이라는 형식으로 돌려준다. '
-          + '그래서 프로그램이 바로 꺼내 쓸 수 있다.')),
+          + 'API 는 꾸밈 없이 자료만 돌려준다. 그래서 프로그램이 바로 꺼내 쓸 수 있다.'),
+        h('p', {}, '자료를 적는 방식은 ', h('b', {}, 'JSON'), ' 이 가장 흔하지만 ',
+          h('b', {}, 'XML'), ' 도 많이 쓰입니다. 3번 화면에서 둘을 견주어 봅니다.')),
       note('warn',
         h('p', {}, h('b', {}, '⚠ 응답이 오는 데 시간이 걸린다.')),
         h('p', {}, '내 컴퓨터 안의 계산과 달리, 요청은 인터넷을 건너 남의 서버까지 갔다 온다. '
@@ -202,6 +205,7 @@ export function url(host) {
           ' 가 세 번 이어 붙습니다.'),
         h('div', { class: 'row' }, h('b', {}, '넣어 볼 글자:'), 인코딩입력),
         인코딩자리)),
+    형식실험(),
     card('확인 문제', ...주소퀴즈.map((문제) => h('div', { style: { marginBottom: '20px' } },
       고르기문제(문제, { 덧붙임: 주소보이기(문제.주소) })))),
   ]);
@@ -213,6 +217,95 @@ export function url(host) {
       h('th', { style: { width: '130px' } }, 이름),
       h('td', {}, mono(값)),
       h('td', { class: 'dim' }, 설명));
+  }
+
+  /**
+   * ★ 「JSON 이 아니라 XML 이 올 수도 있다」를 직접 보여 준다.
+   * 나이스는 Type 파라미터로 형식을 정하고, **Type 을 빼면 기본이 XML** 이다.
+   * 파라미터 하나가 응답의 「모양 자체」를 바꾸는 예라 파라미터 수업으로도 좋다.
+   */
+  function 형식실험() {
+    let 형식 = 'json';
+    const 주소칸 = h('div', {});
+    const 결과칸 = h('div', {});
+    const 고르는칸 = h('div', { class: 'row tight' });
+
+    [['json', 'Type=json'], ['xml', 'Type=xml']].forEach(([값, 이름]) => {
+      const 단추 = h('button', {
+        class: `pill ${값 === 형식 ? 'on' : ''}`.trim(), type: 'button',
+        onclick: () => {
+          형식 = 값;
+          [...고르는칸.children].forEach((c) => c.classList.remove('on'));
+          단추.classList.add('on');
+          주소다시();
+        },
+      }, 이름);
+      고르는칸.append(단추);
+    });
+
+    function 주소다시() {
+      clear(주소칸);
+      주소칸.append(주소보이기(api.학교찾기('와우', 형식).주소));
+    }
+
+    const 보내기단추 = button('이 형식으로 받아 보기', async () => {
+      보내기단추.disabled = true;
+      clear(결과칸);
+      결과칸.append(h('div', { class: 'statusbar' },
+        h('span', { class: 'spin' }, '⏳'), h('span', {}, '요청을 보내는 중입니다…')));
+      const spec = api.학교찾기('와우', 형식);
+      const 결과 = await api.부르기(spec, { 날글: true });
+      보내기단추.disabled = false;
+      clear(결과칸);
+
+      // 연습 모드에서는 담아 둔 JSON 을 XML 로 옮겨 적어 보여 준다.
+      let 원문;
+      if (결과.날글) {
+        원문 = 결과.날글;
+      } else if (결과.본문) {
+        원문 = 형식 === 'xml'
+          ? api.나이스XML(결과.본문, 'schoolInfo')
+          : 예쁘게(결과.본문);
+      } else {
+        결과칸.append(note('bad', 결과.오류 || '받지 못했습니다.'));
+        return;
+      }
+
+      결과칸.append(h('div', { class: 'statusbar' },
+        h('span', { class: `chip ${결과.모드 === '연습' ? 'warn' : 'plain'}` },
+          결과.모드 === '연습' ? '📦 연습 모드' : '🌐 실제 호출'),
+        h('span', { class: 'chip ok' }, 형식 === 'xml' ? 'XML 로 왔다' : 'JSON 으로 왔다'),
+        h('span', { class: 'dim' }, `${결과.걸린ms} ms`)));
+      결과칸.append(h('pre', { class: 'code' }, 원문.slice(0, 1400)
+        + (원문.length > 1400 ? '\n… (줄임)' : '')));
+      결과칸.append(note('info', 형식 === 'xml'
+        ? 'XML 은 <태그> 로 감싸 적습니다. 같은 자료인데 적는 방식만 다릅니다.'
+        : 'JSON 은 { } 와 [ ] 로 적습니다. 프로그램이 다루기에 조금 더 간편합니다.'));
+    }, { kind: 'primary' });
+
+    주소다시();
+
+    return card('★ JSON 만 오는 것이 아니다 — 형식도 파라미터로 정한다',
+      note('info',
+        h('p', {}, '위 주소에 ', mono('Type=json'), ' 이 있었지요. '
+          + '이 값을 ', mono('xml'), ' 로 바꾸면 ', h('b', {}, '같은 자료가 XML 로'), ' 옵니다.')),
+      고르는칸,
+      h('div', { style: { height: '8px' } }),
+      주소칸,
+      h('div', { class: 'row', style: { marginTop: '10px' } }, 보내기단추),
+      결과칸,
+      note('warn',
+        h('p', {}, h('b', {}, '⚠ 나이스는 Type 을 아예 빼면 XML 을 줍니다.')),
+        h('p', {}, '위쪽 주소 칸에서 ', mono('&Type=json'), ' 을 지워 보세요. '
+          + '프로그램이 JSON 인 줄 알고 읽으려다 실패합니다. '
+          + '「무엇을 받을지」를 분명히 적어 두어야 하는 까닭입니다.')),
+      details('🔬 더 깊이 — 그럼 어느 쪽을 쓰나',
+        h('p', {}, 'JSON 이 요즘 더 많이 쓰이지만 XML 도 여전히 많습니다. '
+          + '이 앱의 2번 화면에서 쓴 에듀넷 API 는 ', h('b', {}, 'XML 로만'), ' 답합니다.'),
+        h('p', {}, '공공기관 API 는 XML 이 기본인 곳이 꽤 있습니다. '
+          + '어떤 형식으로 오는지는 그 API 의 매뉴얼에 적혀 있고, '
+          + '고를 수 있으면 보통 ', mono('Type'), ' · ', mono('format'), ' · ',
+        mono('_type'), ' 같은 이름의 파라미터로 정합니다.')));
   }
 }
 

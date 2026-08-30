@@ -70,7 +70,7 @@ function 머리다시() {
   머리.append(h('div', { class: 'row' },
     h('div', { class: 'grow' },
       h('h1', {}, 'API 실습실'),
-      h('p', { class: 'lead' }, '주소를 부르면 JSON이 온다 — 데이터를 수집하는 방법')),
+      h('p', { class: 'lead' }, '주소를 부르면 자료가 온다 — 데이터를 수집하는 방법')),
     모드칸));
 }
 
