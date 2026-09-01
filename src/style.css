@@ -283,6 +283,35 @@ table.tbl th { background: #eef3f9; font-weight: 700; }
 table.tbl td.num { text-align: right; font-variant-numeric: tabular-nums; }
 .scroll-x { overflow-x: auto; }
 
+/* 파라미터 값 고르기 — 값이 여러 개일 때 알약(.pill)로 늘어놓으면
+   글자 길이가 제각각이라 폭이 들쭉날쭉하고 마지막 하나만 줄바꿈되어 보기 나쁘다.
+   격자로 칸 폭을 맞추고, 이 화면의 주인공인 「값(숫자)」을 위에 크게 놓는다. */
+.valuegrid {
+  display: grid; gap: 8px; margin: 4px 0 2px;
+  grid-template-columns: repeat(auto-fit, minmax(112px, 1fr));
+}
+.valuecard {
+  display: flex; flex-direction: column; align-items: center; justify-content: center;
+  gap: 3px; min-height: 62px; padding: 9px 8px;
+  border: 1.5px solid var(--line); border-radius: 12px; background: #fff;
+  cursor: pointer; font: inherit; color: var(--ink); text-align: center;
+  transition: border-color .15s, background .15s, transform .12s;
+}
+.valuecard:hover { border-color: var(--brand); background: var(--brand-soft); }
+.valuecard:focus-visible { outline: 3px solid #ffd76a; outline-offset: 2px; }
+.valuecard .num {
+  font-family: 'D2Coding', 'Consolas', monospace;
+  font-size: 17px; font-weight: 800; color: var(--brand); letter-spacing: -.01em;
+}
+.valuecard .nm { font-size: 12.5px; color: var(--dim); line-height: 1.25; word-break: keep-all; }
+.valuecard.on {
+  background: var(--brand); border-color: var(--brand); color: #fff;
+  box-shadow: 0 6px 16px rgba(22, 103, 196, .28);
+}
+.valuecard.on .num { color: #fff; }
+.valuecard.on .nm { color: rgba(255, 255, 255, .92); }
+/* ⚠ 고른 칸을 살짝 띄우지 말 것 — 한 줄에 나란한 칸들 사이에서 혼자 어긋나 보인다. */
+
 .cards { display: grid; gap: 10px; grid-template-columns: repeat(auto-fill, minmax(240px, 1fr)); }
 .pickcard {
   border: 2px solid var(--line); border-radius: 10px; padding: 12px 14px; background: #fff;

@@ -33,18 +33,29 @@ export function onevalue(host) {
   let 지금 = '75543';          // 체육으로 시작 (자료가 작고 제목이 재미있다)
   const 주소자리 = h('div', {});
   const 결과자리 = h('div', {});
-  const 고르는칸 = h('div', { class: 'row tight' });
+  // ⚠ 알약(.pill)로 늘어놓으면 이름 길이가 제각각이라 폭이 들쭉날쭉하고
+  //   마지막 하나만 줄바꿈된다. 격자로 폭을 맞추고 값(숫자)을 앞세운다.
+  const 고르는칸 = h('div', { class: 'valuegrid', role: 'group', 'aria-label': 'clss_id 값 고르기' });
 
   api.과목들.forEach((과목) => {
+    const 골랐나 = 과목.clss_id === 지금;
     const 단추 = h('button', {
-      class: `pill ${과목.clss_id === 지금 ? 'on' : ''}`.trim(), type: 'button',
+      class: `valuecard ${골랐나 ? 'on' : ''}`.trim(), type: 'button',
+      'aria-pressed': 골랐나 ? 'true' : 'false',
+      title: `clss_id=${과목.clss_id} — ${과목.이름} (전체 ${과목.전체건수}건)`,
       onclick: () => {
         지금 = 과목.clss_id;
-        [...고르는칸.children].forEach((c) => c.classList.remove('on'));
+        [...고르는칸.children].forEach((c) => {
+          c.classList.remove('on');
+          c.setAttribute('aria-pressed', 'false');
+        });
         단추.classList.add('on');
+        단추.setAttribute('aria-pressed', 'true');
         다시();
       },
-    }, `${과목.clss_id} · ${과목.이름}`);
+    },
+    h('span', { class: 'num' }, 과목.clss_id),
+    h('span', { class: 'nm' }, 과목.이름));
     고르는칸.append(단추);
   });
 
