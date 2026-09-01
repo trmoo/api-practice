@@ -21,7 +21,7 @@ import {
   주소보이기, 파라미터표, 요청상자, 고르기문제, 코드읽기, 코드보기, 연습알림,
 } from '../lib/req.js';
 import { 주소분해, 인코딩낱낱이 } from '../lib/url.js';
-import { 나무그리기, 경로표시줄, 예쁘게, 값꺼내기 } from '../lib/json.js';
+import { 나무그리기, 경로표시줄, 예쁘게, 값꺼내기, 경로글 } from '../lib/json.js';
 import * as api from '../lib/api.js';
 import { 주소퀴즈, 코드빈칸 } from '../data/quiz.js';
 
@@ -452,9 +452,51 @@ export function json(host) {
         h('p', {}, mono('데이터.current.temperature_2m'), ' 는 '
           + '「데이터 안의 current 안의 temperature_2m」이라는 뜻입니다.'),
         h('p', {}, '목록(대괄호 [ ])은 이름 대신 번호로 들어갑니다. 번호는 ',
-          h('b', {}, '0부터'), ' 셉니다.'))),
+          h('b', {}, '0부터'), ' 셉니다.')),
+      본보기()),
     card('한 걸음 더 — 깊이 들어간 값 꺼내기 (읽어만 보세요)',
       코드읽기(빈칸찾기('blank-path'))),
   ]);
   나무다시();
+
+  /**
+   * 「읽는 법」 밑에 붙이는 짧은 본보기.
+   * ★ 규칙만 적어 두면 「그래서 결과가 어떻게 되는데?」에 답이 없다.
+   *   경로를 따라가면 무엇이 나오는지 눈으로 보이게 한다.
+   * ⚠ 결과 칸은 손으로 적지 말고 값꺼내기() 로 실제로 꺼낸다.
+   *   그래야 본보기 JSON 을 고쳐도 표가 어긋나지 않는다.
+   */
+  function 본보기() {
+    // open-meteo 응답을 아주 짧게 줄인 것. 모양은 실제와 같다.
+    const 짧은것 = {
+      latitude: 37.55,
+      current: { time: '2026-08-30T15:30', temperature_2m: 25.2 },
+      hourly: { temperature_2m: [24.1, 25.2, 26.3] },
+    };
+    const 보기들 = [
+      ['기온', ['current', 'temperature_2m']],
+      ['잰 시각', ['current', 'time']],
+      ['위도', ['latitude']],
+      ['시간별 기온 중 두 번째', ['hourly', 'temperature_2m', 1]],
+    ];
+    const 몸 = h('tbody', {});
+    보기들.forEach(([무엇, 경로]) => {
+      몸.append(h('tr', {},
+        h('td', {}, 무엇),
+        h('td', {}, mono(경로글(경로, 'js'))),
+        h('td', {}, h('b', {}, JSON.stringify(값꺼내기(짧은것, 경로))))));
+    });
+    return h('div', {},
+      h('h4', {}, '예를 들어 이런 응답을 받았다면'),
+      h('pre', { class: 'code' }, 예쁘게(짧은것)),
+      h('div', { class: 'scroll-x' },
+        h('table', { class: 'tbl' },
+          h('thead', {}, h('tr', {},
+            h('th', {}, '꺼내고 싶은 것'),
+            h('th', {}, '이렇게 적으면'),
+            h('th', {}, '이 값이 나온다'))),
+          몸)),
+      note('info', '마지막 줄을 보세요. ', mono('[1]'), ' 은 목록의 ',
+        h('b', {}, '두 번째'), ' 입니다 — 번호를 0부터 세기 때문입니다.'));
+  }
 }
