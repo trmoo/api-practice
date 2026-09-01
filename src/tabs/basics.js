@@ -397,7 +397,7 @@ export function param(host) {
       h('label', { class: 'check' }, 시간대체크, '한국 시간대로 받기 (timezone=Asia/Seoul)')),
     card('② 이렇게 주소가 만들어집니다', 주소자리),
     card('③ 보내 보세요', 요청자리),
-    card('코드로 쓰면 — 읽어만 보세요 (채점하지 않습니다)',
+    card('[심화] 코드로 쓰면 — 읽어만 보세요',
       코드읽기(빈칸찾기('blank-fetch-js')),
       h('hr', { style: { border: 0, borderTop: '1px solid var(--line)', margin: '22px 0' } }),
       코드읽기(빈칸찾기('blank-requests-py'))),
