@@ -4,7 +4,7 @@
  *   1 first  첫 요청      — 주소를 부르면 자료가 온다
  *   3 url    주소 해부기  — 주소가 곧 요청이다 (+ Type=json ↔ xml 형식 실험)
  *   4 param  파라미터 실험실 — 값을 바꾸면 답이 바뀐다
- *   5 json   JSON 탐험기  — 깊이 들어간 값을 꺼내는 길
+ *     json   [심화] JSON 탐험기 — 깊이 들어간 값을 꺼내는 길 (번호를 붙이지 않는다)
  *
  *   2번 화면(값 하나만 바꾸기)은 tabs/onevalue.js 에 따로 있다.
  *
@@ -409,7 +409,7 @@ export function param(host) {
 
 export function json(host) {
   add(host, [
-    pageHead('JSON 탐험기 — 값을 꺼내는 길 찾기',
+    pageHead('[심화] JSON 탐험기 — 값을 꺼내는 길 찾기',
       '받은 JSON 에서 값을 누르면, 그 값을 꺼내는 「경로」가 아래에 적힙니다.'),
     연습알림(api.받은날),
   ]);
